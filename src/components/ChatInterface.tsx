@@ -11,7 +11,7 @@ interface ChatMessage {
   id: string
   content: string
   sender: 'user' | 'assistant'
-  timestamp: Date
+  timestamp: Date | string
   type?: 'text' | 'quick-action'
   actions?: Array<{ label: string; action: string }>
 }
@@ -174,7 +174,7 @@ export default function ChatInterface() {
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    {message.timestamp.toLocaleTimeString()}
+                    {new Date(message.timestamp).toLocaleTimeString()}
                   </p>
                 </div>
               </div>
