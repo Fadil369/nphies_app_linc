@@ -174,7 +174,10 @@ export default function ChatInterface() {
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    {new Date(message.timestamp).toLocaleTimeString()}
+                    {(() => {
+                      const dateObj = typeof message.timestamp === 'string' ? new Date(message.timestamp) : message.timestamp
+                      return isNaN(dateObj.getTime()) ? 'Invalid time' : dateObj.toLocaleTimeString()
+                    })()}
                   </p>
                 </div>
               </div>

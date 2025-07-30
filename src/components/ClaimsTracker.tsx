@@ -19,18 +19,18 @@ import { useKV } from '@github/spark/hooks'
 interface Claim {
   id: string
   claimNumber: string
-  serviceDate: Date
+  serviceDate: Date | string
   provider: string
   serviceType: string
   claimedAmount: number
   approvedAmount: number
   patientResponsibility: number
   status: 'Submitted' | 'Under Review' | 'Approved' | 'Paid' | 'Denied' | 'Appeal'
-  statusDate: Date
+  statusDate: Date | string
   description: string
   timeline: Array<{
     status: string
-    date: Date
+    date: Date | string
     description: string
   }>
 }
@@ -147,12 +147,16 @@ export default function ClaimsTracker() {
     }).format(amount)
   }
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid Date'
+    }
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
-    }).format(date)
+    }).format(dateObj)
   }
 
   return (

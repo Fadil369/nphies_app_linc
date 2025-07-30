@@ -29,8 +29,8 @@ interface Policy {
   policyNumber: string
   type: string
   status: 'Active' | 'Pending' | 'Expired' | 'Cancelled'
-  effectiveDate: Date
-  renewalDate: Date
+  effectiveDate: Date | string
+  renewalDate: Date | string
   monthlyPremium: number
   deductible: number
   deductibleUsed: number
@@ -45,7 +45,7 @@ interface Policy {
   dependents: Array<{
     name: string
     relationship: string
-    dateOfBirth: Date
+    dateOfBirth: Date | string
   }>
   primaryCareProvider?: {
     name: string
@@ -107,12 +107,16 @@ export default function PolicyManagement() {
     }).format(amount)
   }
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid Date'
+    }
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    }).format(date)
+    }).format(dateObj)
   }
 
   const getStatusColor = (status: string) => {
@@ -129,9 +133,13 @@ export default function PolicyManagement() {
     return Math.min((used / total) * 100, 100)
   }
 
-  const getDaysUntilRenewal = (renewalDate: Date) => {
+  const getDaysUntilRenewal = (renewalDate: Date | string) => {
+    const dateObj = typeof renewalDate === 'string' ? new Date(renewalDate) : renewalDate
+    if (isNaN(dateObj.getTime())) {
+      return 0
+    }
     const today = new Date()
-    const diffTime = renewalDate.getTime() - today.getTime()
+    const diffTime = dateObj.getTime() - today.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays
   }
