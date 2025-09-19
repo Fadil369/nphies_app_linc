@@ -55,14 +55,14 @@ export default function ChatInterface() {
     try {
       const prompt = spark.llmPrompt`You are a helpful health insurance virtual assistant. The user asked: "${userMessage}". 
 
-      Provide a helpful, accurate response about health insurance topics including:
-      - Coverage explanations
-      - Claims processing
-      - Policy benefits
-      - Network providers
-      - Enrollment assistance
-      
-      Keep responses concise but informative. If you need more information to help properly, ask specific follow-up questions.`
+Provide a helpful, accurate response about health insurance topics including:
+- Coverage explanations
+- Claims processing
+- Policy benefits
+- Network providers
+- Enrollment assistance
+
+Keep responses concise but informative. If you need more information to help properly, ask specific follow-up questions.`
       
       const response = await spark.llm(prompt)
       return response
