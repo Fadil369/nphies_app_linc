@@ -1,0 +1,9 @@
+# Copy this file to `.dev.vars` and provide real credentials when running `wrangler dev`
+# Example values below are placeholders only.
+
+NPHIES_API_URL=https://sandbox.nphies.sa
+NPHIES_CLIENT_ID=your-nphies-client-id
+NPHIES_CLIENT_SECRET=your-nphies-client-secret
+JWT_SECRET=replace-with-strong-secret
+OPENAI_API_KEY=sk-your-openai-api-key
+FRONTEND_URL=http://localhost:5173

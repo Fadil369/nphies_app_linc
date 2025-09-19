@@ -27,6 +27,7 @@
         "src/*"
       ]
     },
+  "types": ["vite/client", "jest", "@testing-library/jest-dom", "node"],
   },
   "include": [
     "src"

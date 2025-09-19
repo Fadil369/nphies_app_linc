@@ -1,0 +1,250 @@
+# GitHub Actions CI/CD Pipeline for NPHIES Healthcare Assistant
+name: Deploy NPHIES Healthcare Assistant
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  AZURE_RESOURCE_GROUP: rg-nphies-healthcare
+  AZURE_LOCATION: "Saudi Arabia Central"
+  BACKEND_APP_NAME: nphies-healthcare-backend
+  FRONTEND_APP_NAME: nphies-healthcare-frontend
+
+jobs:
+  # Test and validate code
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Run frontend tests
+        run: npm test
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          npm test
+
+      - name: Run linting
+        run: |
+          npm run lint
+          cd backend
+          npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build backend
+        run: |
+          cd backend
+          npm run build
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: |
+            coverage/
+            backend/coverage/
+
+  # Security scanning
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=high
+          cd backend
+          npm audit --audit-level=high
+
+  # Build and push Docker images
+  build:
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push backend image
+        run: |
+          docker build -f Dockerfile.backend -t ${{ secrets.ACR_LOGIN_SERVER }}/nphies-backend:${{ github.sha }} .
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nphies-backend:${{ github.sha }}
+          docker tag ${{ secrets.ACR_LOGIN_SERVER }}/nphies-backend:${{ github.sha }} ${{ secrets.ACR_LOGIN_SERVER }}/nphies-backend:latest
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nphies-backend:latest
+
+      - name: Build and push frontend image
+        run: |
+          docker build -f Dockerfile.frontend -t ${{ secrets.ACR_LOGIN_SERVER }}/nphies-frontend:${{ github.sha }} .
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nphies-frontend:${{ github.sha }}
+          docker tag ${{ secrets.ACR_LOGIN_SERVER }}/nphies-frontend:${{ github.sha }} ${{ secrets.ACR_LOGIN_SERVER }}/nphies-frontend:latest
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nphies-frontend:latest
+
+  # Deploy to staging
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy ARM template to staging
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}-staging
+          template: ./azure-deploy.json
+          parameters: |
+            appName=${{ env.BACKEND_APP_NAME }}-staging
+            location=${{ env.AZURE_LOCATION }}
+            sku=B1
+            nphiesClientId=${{ secrets.NPHIES_CLIENT_ID_STAGING }}
+            nphiesClientSecret=${{ secrets.NPHIES_CLIENT_SECRET_STAGING }}
+            openaiApiKey=${{ secrets.OPENAI_API_KEY }}
+
+      - name: Update backend app with new image
+        run: |
+          az webapp config container set \
+            --name ${{ env.BACKEND_APP_NAME }}-staging \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}-staging \
+            --docker-custom-image-name ${{ secrets.ACR_LOGIN_SERVER }}/nphies-backend:${{ github.sha }}
+
+      - name: Run smoke tests
+        run: |
+          sleep 60  # Wait for deployment
+          curl -f https://${{ env.BACKEND_APP_NAME }}-staging.azurewebsites.net/health
+
+  # Deploy to production
+  deploy-production:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy ARM template to production
+        uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
+          template: ./azure-deploy.json
+          parameters: |
+            appName=${{ env.BACKEND_APP_NAME }}
+            location=${{ env.AZURE_LOCATION }}
+            sku=P1V2
+            nphiesClientId=${{ secrets.NPHIES_CLIENT_ID }}
+            nphiesClientSecret=${{ secrets.NPHIES_CLIENT_SECRET }}
+            openaiApiKey=${{ secrets.OPENAI_API_KEY }}
+
+      - name: Update backend app with new image
+        run: |
+          az webapp config container set \
+            --name ${{ env.BACKEND_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --docker-custom-image-name ${{ secrets.ACR_LOGIN_SERVER }}/nphies-backend:${{ github.sha }}
+
+      - name: Deploy frontend to Static Web App
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/"
+          output_location: "dist"
+          api_location: ""
+
+      - name: Run production health checks
+        run: |
+          sleep 120  # Wait for deployment
+          curl -f https://${{ env.BACKEND_APP_NAME }}.azurewebsites.net/health
+          
+      - name: Send deployment notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          text: |
+            🚀 NPHIES Healthcare Assistant deployed to production!
+            Backend: https://${{ env.BACKEND_APP_NAME }}.azurewebsites.net
+            Frontend: https://${{ env.FRONTEND_APP_NAME }}.azurestaticapps.net
+        if: always()
+
+  # Performance testing
+  performance-test:
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            https://${{ env.FRONTEND_APP_NAME }}.azurestaticapps.net
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Run load tests
+        run: |
+          npx artillery quick \
+            --count 10 \
+            --num 25 \
+            https://${{ env.BACKEND_APP_NAME }}.azurewebsites.net/health

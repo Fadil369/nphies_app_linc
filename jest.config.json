@@ -1,0 +1,55 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "jsdom",
+  "setupFilesAfterEnv": ["<rootDir>/tests/setup.ts"],
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "^@copilotkit/react-ui$": "<rootDir>/tests/mocks/copilotkit-react-ui.js",
+    "^@copilotkit/react-core$": "<rootDir>/tests/mocks/copilotkit-react-core.js",
+    "^@copilotkit/shared$": "<rootDir>/tests/mocks/copilotkit-shared.js",
+    "^jose(.*)$": "<rootDir>/tests/mocks/jose.js"
+    ,
+    "^@github/spark/hooks$": "<rootDir>/tests/mocks/spark-hooks.js"
+  },
+  "transform": {
+    "^.+\\.(ts|tsx|js|jsx)$": "ts-jest"
+  },
+  "transformIgnorePatterns": [
+    "/node_modules/(?!jose|@copilotkit|@segment|@octokit|@github).*"
+  ],
+  
+  "testMatch": [
+    "<rootDir>/tests/**/*.test.(ts|tsx|js|jsx)",
+    "<rootDir>/src/**/__tests__/**/*.(ts|tsx|js|jsx)",
+    "<rootDir>/src/**/*.(test|spec).(ts|tsx|js|jsx)"
+  ],
+  "collectCoverageFrom": [
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/main.tsx",
+    "!src/vite-env.d.ts"
+  ],
+  "coverageReporters": ["text", "lcov", "html"],
+  "coverageDirectory": "coverage",
+  "coverageThreshold": {
+    "global": {
+      "branches": 80,
+      "functions": 80,
+      "lines": 80,
+      "statements": 80
+    }
+  },
+  "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"],
+  "testTimeout": 10000,
+  "verbose": true,
+  "globals": {
+    "ts-jest": {
+      "tsconfig": "tsconfig.json",
+      "diagnostics": {
+        "warnOnly": true
+      },
+      "isolatedModules": true
+    }
+  }
+}

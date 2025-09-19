@@ -161,9 +161,9 @@ export default function EnrollmentAssistant() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ar-SA', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'SAR',
       minimumFractionDigits: 0
     }).format(amount)
   }
@@ -631,40 +631,51 @@ export default function EnrollmentAssistant() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Enrollment Assistant</h2>
-        <p className="text-muted-foreground">
-          Let us guide you through the enrollment process step by step
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          Enrollment Assistant
+        </h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Let our AI-powered assistant guide you through the enrollment process step by step
         </p>
       </div>
 
-      {/* Progress Indicator */}
-      <Card>
+      {/* Enhanced Progress Indicator */}
+      <Card className="card-enhanced">
         <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm">
-              <span>Progress</span>
-              <span>{enrollmentData.step} of 5 steps</span>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="text-sm font-medium">Enrollment Progress</span>
+                <p className="text-xs text-muted-foreground">Step {enrollmentData.step} of 5</p>
+              </div>
+              <Badge className="bg-gradient-to-r from-primary to-accent text-white">
+                {Math.round(calculateProgress())}% Complete
+              </Badge>
             </div>
-            <Progress value={calculateProgress()} className="h-2" />
             
-            <div className="flex justify-between">
+            <div className="relative">
+              <Progress value={calculateProgress()} className="h-3 bg-muted/50" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent opacity-20" />
+            </div>
+            
+            <div className="grid grid-cols-5 gap-2">
               {ENROLLMENT_STEPS.map((step) => {
                 const Icon = step.icon
                 const isCompleted = enrollmentData.step > step.id
                 const isCurrent = enrollmentData.step === step.id
                 
                 return (
-                  <div key={step.id} className="flex flex-col items-center space-y-2">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      isCompleted ? 'bg-green-100 text-green-600' :
-                      isCurrent ? 'bg-primary text-primary-foreground' :
-                      'bg-muted text-muted-foreground'
+                  <div key={step.id} className="flex flex-col items-center space-y-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                      isCompleted ? 'bg-gradient-to-br from-green-100 to-green-200 text-green-700 shadow-sm' :
+                      isCurrent ? 'bg-gradient-to-br from-primary to-accent text-white shadow-lg scale-110' :
+                      'bg-muted/50 text-muted-foreground'
                     }`}>
-                      {isCompleted ? <CheckCircle size={20} /> : <Icon size={20} />}
+                      {isCompleted ? <CheckCircle size={22} /> : <Icon size={22} />}
                     </div>
-                    <span className={`text-xs text-center max-w-20 ${
-                      isCurrent ? 'font-medium' : 'text-muted-foreground'
+                    <span className={`text-xs text-center leading-tight ${
+                      isCurrent ? 'font-semibold text-primary' : 'text-muted-foreground'
                     }`}>
                       {step.title}
                     </span>
@@ -676,32 +687,43 @@ export default function EnrollmentAssistant() {
         </CardContent>
       </Card>
 
-      {/* Step Content */}
-      <Card>
+      {/* Enhanced Step Content */}
+      <Card className="card-enhanced min-h-[500px]">
         <CardContent className="pt-6">
-          {renderStepContent()}
+          <div className="animate-in fade-in-50 duration-300">
+            {renderStepContent()}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Navigation */}
-      <div className="flex justify-between">
+      {/* Enhanced Navigation */}
+      <div className="flex justify-between items-center p-4 bg-muted/30 rounded-xl">
         <Button 
           variant="outline" 
           onClick={prevStep}
           disabled={enrollmentData.step === 1}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 hover:scale-105 transition-transform disabled:hover:scale-100"
         >
           <ArrowLeft size={16} />
           Previous
         </Button>
 
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            Step {enrollmentData.step} of {ENROLLMENT_STEPS.length}
+          </p>
+        </div>
+
         {enrollmentData.step < 5 ? (
-          <Button onClick={nextStep} className="flex items-center gap-2">
-            Next
+          <Button 
+            onClick={nextStep} 
+            className="flex items-center gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 hover:scale-105 transition-all"
+          >
+            Continue
             <ArrowRight size={16} />
           </Button>
         ) : (
-          <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+          <Button className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:scale-105 transition-all shadow-lg">
             <Upload size={16} />
             Submit Application
           </Button>

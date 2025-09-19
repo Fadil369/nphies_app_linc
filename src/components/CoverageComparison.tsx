@@ -104,53 +104,74 @@ export default function CoverageComparison() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ar-SA', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'SAR',
       minimumFractionDigits: 0
     }).format(amount)
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Compare Health Plans</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Compare Health Plans
+          </h2>
+          <p className="text-muted-foreground mt-2">
             Select up to 3 plans to compare side by side
           </p>
         </div>
         <Button 
           onClick={() => setShowRecommendation(!showRecommendation)}
           variant="outline"
+          className="hover:scale-105 transition-transform"
         >
-          {showRecommendation ? 'Hide' : 'Show'} Recommendation
+          {showRecommendation ? 'Hide' : 'Show'} AI Recommendation
         </Button>
       </div>
 
       {showRecommendation && (
-        <Card className="border-accent/20 bg-accent/5">
+        <Card className="border-accent/30 bg-gradient-to-br from-accent/5 to-primary/5 card-enhanced animate-in slide-in-from-top-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="text-accent" size={20} />
-              Recommended Plan
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-accent/20 to-primary/20">
+                <Shield className="text-accent" size={24} />
+              </div>
+              <div>
+                <span className="text-lg font-semibold">AI Recommendation</span>
+                <p className="text-sm text-muted-foreground font-normal">Based on value analysis</p>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {getRecommendation() ? (
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{getRecommendation()?.name}</h3>
-                  <p className="text-muted-foreground">
-                    Best overall value based on your selected plans with {getRecommendation()?.rating}/5 rating
+                  <h3 className="font-semibold text-xl text-accent">{getRecommendation()?.name}</h3>
+                  <p className="text-muted-foreground mt-1">
+                    Best overall value with {getRecommendation()?.rating}/5 rating and comprehensive coverage
                   </p>
+                  <div className="flex items-center gap-4 mt-3">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Monthly: </span>
+                      <span className="font-semibold">{formatCurrency(getRecommendation()?.monthlyPremium || 0)}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Deductible: </span>
+                      <span className="font-semibold">{formatCurrency(getRecommendation()?.deductible || 0)}</span>
+                    </div>
+                  </div>
                 </div>
-                <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20">
-                  Best Value
+                <Badge className="bg-gradient-to-r from-accent to-primary text-white border-0 px-4 py-2">
+                  ⭐ Best Value
                 </Badge>
               </div>
             ) : (
-              <p className="text-muted-foreground">Select plans to see recommendation</p>
+              <div className="text-center py-6">
+                <Shield size={48} className="text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground">Select plans to see AI recommendation</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -159,45 +180,67 @@ export default function CoverageComparison() {
       {/* Plan Selection */}
       <div className="grid gap-4 md:grid-cols-3">
         {SAMPLE_PLANS.map((plan) => (
-          <Card key={plan.id} className={`cursor-pointer transition-all ${selectedPlans.includes(plan.id) ? 'ring-2 ring-primary' : ''}`}>
+          <Card 
+            key={plan.id} 
+            className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 card-enhanced ${
+              selectedPlans.includes(plan.id) ? 'ring-2 ring-primary shadow-lg bg-primary/5' : ''
+            }`}
+            onClick={() => handlePlanSelection(plan.id, !selectedPlans.includes(plan.id))}
+          >
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
                   <Checkbox
                     checked={selectedPlans.includes(plan.id)}
                     onCheckedChange={(checked) => handlePlanSelection(plan.id, checked as boolean)}
+                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
-                  <Badge variant="outline">{plan.type}</Badge>
+                  <Badge variant="outline" className="bg-muted/50">{plan.type}</Badge>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm font-medium">{plan.rating}</span>
-                  <span className="text-xs text-muted-foreground">★</span>
+                <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-950 px-2 py-1 rounded-lg">
+                  <span className="text-sm font-bold text-yellow-700 dark:text-yellow-300">{plan.rating}</span>
+                  <span className="text-yellow-500">★</span>
                 </div>
               </div>
-              <CardTitle className="text-lg">{plan.name}</CardTitle>
-              <p className="text-2xl font-bold text-primary">
-                {formatCurrency(plan.monthlyPremium)}
-                <span className="text-sm font-normal text-muted-foreground">/month</span>
-              </p>
+              <CardTitle className="text-lg mb-2">{plan.name}</CardTitle>
+              <div className="flex items-baseline gap-1">
+                <p className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  {formatCurrency(plan.monthlyPremium)}
+                </p>
+                <span className="text-sm text-muted-foreground">/month</span>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-sm space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Deductible:</span>
-                  <span>{formatCurrency(plan.deductible)}</span>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="space-y-1">
+                  <span className="text-muted-foreground text-xs">Deductible</span>
+                  <div className="font-semibold">{formatCurrency(plan.deductible)}</div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Out-of-pocket max:</span>
-                  <span>{formatCurrency(plan.outOfPocketMax)}</span>
+                <div className="space-y-1">
+                  <span className="text-muted-foreground text-xs">Max Out-of-Pocket</span>
+                  <div className="font-semibold">{formatCurrency(plan.outOfPocketMax)}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 pt-2">
-                {plan.dentalIncluded && <Tooth size={16} className="text-accent" />}
-                {plan.visionIncluded && <Eye size={16} className="text-accent" />}
-                <Heart size={16} className="text-primary" />
-                <span className="text-xs text-muted-foreground ml-auto">
+              
+              <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  {plan.dentalIncluded && (
+                    <div className="p-1.5 rounded-lg bg-green-100 dark:bg-green-900">
+                      <Tooth size={14} className="text-green-600 dark:text-green-400" />
+                    </div>
+                  )}
+                  {plan.visionIncluded && (
+                    <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900">
+                      <Eye size={14} className="text-blue-600 dark:text-blue-400" />
+                    </div>
+                  )}
+                  <div className="p-1.5 rounded-lg bg-red-100 dark:bg-red-900">
+                    <Heart size={14} className="text-red-600 dark:text-red-400" />
+                  </div>
+                </div>
+                <Badge variant="secondary" className="text-xs">
                   {plan.networkSize} Network
-                </span>
+                </Badge>
               </div>
             </CardContent>
           </Card>

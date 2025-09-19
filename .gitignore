@@ -25,9 +25,28 @@ dist-ssr
 *.sw?
 
 .env
+*.dev.vars
+**/.dev.vars
 **/agent-eval-report*
 packages
 .file-manifest
 .devcontainer/
 
 .spark-workbench-id
+
+# Cloudflare / wrangler
+.wrangler
+
+# Worker / Pages local files
+worker/.cache
+
+# Logs and runtime
+pids
+
+# Optional lockfiles to avoid committing local changes
+.pnp.*
+
+# Build artifacts
+.parcel-cache
+build
+

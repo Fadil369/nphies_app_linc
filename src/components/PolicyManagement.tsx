@@ -100,9 +100,9 @@ export default function PolicyManagement() {
   const [editingProvider, setEditingProvider] = useState(false)
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ar-SA', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'SAR',
       minimumFractionDigits: 0
     }).format(amount)
   }
@@ -146,30 +146,75 @@ export default function PolicyManagement() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">Policy Management</h2>
-        <p className="text-muted-foreground">
-          View and manage your insurance policies and coverage details
-        </p>
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Policy Management
+          </h2>
+          <p className="text-muted-foreground mt-2">
+            View and manage your insurance policies and coverage details
+          </p>
+        </div>
+        
+        {/* Policy Status Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-4 rounded-xl border border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-200 dark:bg-green-800">
+                <Shield size={20} className="text-green-700 dark:text-green-300" />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-green-700 dark:text-green-300">Active</div>
+                <div className="text-xs text-green-600 dark:text-green-400">Policy Status</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-200 dark:bg-blue-800">
+                <Users size={20} className="text-blue-700 dark:text-blue-300" />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{selectedPolicy.dependents.length + 1}</div>
+                <div className="text-xs text-blue-600 dark:text-blue-400">Covered Members</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 p-4 rounded-xl border border-purple-200 dark:border-purple-800">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-200 dark:bg-purple-800">
+                <CalendarBlank size={20} className="text-purple-700 dark:text-purple-300" />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-purple-700 dark:text-purple-300">{getDaysUntilRenewal(selectedPolicy.renewalDate)}</div>
+                <div className="text-xs text-purple-600 dark:text-purple-400">Days to Renewal</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Policy Overview */}
         <div className="lg:col-span-2 space-y-6">
           {/* Active Policy Card */}
-          <Card>
-            <CardHeader>
+          <Card className="card-enhanced">
+            <CardHeader className="border-b border-border/50">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Shield size={24} className="text-primary" />
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20">
+                    <Shield size={28} className="text-primary" />
+                  </div>
                   <div>
-                    <CardTitle>{selectedPolicy.planName}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
+                    <CardTitle className="text-xl">{selectedPolicy.planName}</CardTitle>
+                    <p className="text-sm text-muted-foreground font-mono">
                       Policy #{selectedPolicy.policyNumber}
                     </p>
                   </div>
                 </div>
-                <Badge className={getStatusColor(selectedPolicy.status)}>
+                <Badge className={`${getStatusColor(selectedPolicy.status)} px-3 py-1`}>
                   {selectedPolicy.status}
                 </Badge>
               </div>
@@ -233,17 +278,20 @@ export default function PolicyManagement() {
 
               {/* Financial Summary */}
               <div>
-                <h4 className="font-semibold mb-3">Financial Summary</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <h4 className="font-semibold mb-4 flex items-center gap-2">
+                  <CurrencyDollar size={18} className="text-primary" />
+                  Financial Summary
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20">
                     <p className="text-sm text-muted-foreground">Monthly Premium</p>
-                    <p className="text-2xl font-bold text-primary">
+                    <p className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                       {formatCurrency(selectedPolicy.monthlyPremium)}
                     </p>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 p-4 rounded-xl bg-muted/30">
                     <p className="text-sm text-muted-foreground">Annual Cost</p>
-                    <p className="text-xl font-semibold">
+                    <p className="text-2xl font-bold text-foreground">
                       {formatCurrency(selectedPolicy.monthlyPremium * 12)}
                     </p>
                   </div>
@@ -329,20 +377,25 @@ export default function PolicyManagement() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Actions */}
-          <Card>
+          <Card className="card-enhanced">
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <Edit size={16} className="text-primary" />
+                </div>
+                Quick Actions
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full justify-start" variant="outline">
+              <Button className="w-full justify-start hover:scale-105 transition-transform" variant="outline">
                 <Download size={16} className="mr-2" />
                 Download Policy Documents
               </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <Button className="w-full justify-start hover:scale-105 transition-transform" variant="outline">
                 <Edit size={16} className="mr-2" />
                 Update Contact Information
               </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <Button className="w-full justify-start hover:scale-105 transition-transform" variant="outline">
                 <CalendarBlank size={16} className="mr-2" />
                 Schedule Renewal Review
               </Button>
