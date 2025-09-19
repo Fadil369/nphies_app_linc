@@ -4,9 +4,27 @@
 
 Your NPHIES Healthcare Assistant now has comprehensive CopilotKit integration with advanced AI capabilities. Here's your roadmap to go live:
 
-## 📋 **Immediate Action Items**
+## � **Ready for Production!**
+
+Your NPHIES Healthcare Assistant now has comprehensive CopilotKit integration with advanced AI capabilities. Here's your roadmap to go live:
+## �📋 **Immediate Action Items**
 
 ### 1. **Environment Setup** (30 minutes)
+```bash
+# Backend dependencies
+cd backend
+npm install
+
+# Frontend dependencies  
+cd ..
+npm install --save-dev @testing-library/react @testing-library/jest-dom jest ts-jest
+
+# Set up environment variables
+cp backend/.env.example backend/.env
+# Fill in your actual NPHIES credentials and API keys
+```
+### 1. **Environment Setup** (30 minutes)
+
 ```bash
 # Backend dependencies
 cd backend
@@ -23,6 +41,10 @@ cp backend/.env.example backend/.env
 
 ### 2. **API Keys Configuration** (15 minutes)
 Update `backend/.env` with:
+### 2. **API Keys Configuration** (15 minutes)
+
+Update `backend/.env` with:
+
 - `NPHIES_CLIENT_ID` - Your NPHIES client ID
 - `NPHIES_CLIENT_SECRET` - Your NPHIES client secret  
 - `OPENAI_API_KEY` - Your OpenAI API key for CopilotKit
@@ -42,8 +64,44 @@ npm run dev
 npm test
 cd backend && npm test
 ```
+### 3. **Local Development Testing** (15 minutes)
+
+```bash
+# Start backend
+cd backend
+npm run dev
+
+# Start frontend (in new terminal)
+npm run dev
+
+# Run tests
+npm test
+cd backend && npm test
+```
 
 ### 4. **Cloudflare Worker Resources** (20 minutes)
+```bash
+# Create KV namespace for token caching (run once)
+wrangler kv namespace create nphies-healthcare-worker-kv
+
+# Create D1 database for audit logs (run once)
+wrangler d1 create nphies-healthcare-db
+
+# Update wrangler.toml with the generated IDs
+# (replace `your-kv-namespace-id`, `your-preview-kv-namespace-id`, and `your-d1-database-id`)
+
+# Store Worker secrets
+cd worker
+wrangler secret put NPHIES_CLIENT_ID
+wrangler secret put NPHIES_CLIENT_SECRET
+wrangler secret put JWT_SECRET
+wrangler secret put OPENAI_API_KEY
+
+# Optional: set additional vars
+wrangler secret put FRONTEND_URL --text https://your-domain.pages.dev
+```
+### 4. **Cloudflare Worker Resources** (20 minutes)
+
 ```bash
 # Create KV namespace for token caching (run once)
 wrangler kv namespace create nphies-healthcare-worker-kv
@@ -79,8 +137,41 @@ wrangler dev --local
 cd ..
 npm run dev   # set VITE_API_URL to http://127.0.0.1:8787 when prompted
 ```
+### 5. **Local Worker Verification** (10 minutes)
+
+```bash
+# Prepare local environment variables
+cd worker
+cp .dev.vars.example .dev.vars
+# edit .dev.vars and add development credentials
+
+# Launch the Worker locally (Miniflare)
+wrangler dev --local
+
+# In another terminal, start the frontend with the dev Worker URL
+cd ..
+npm run dev   # set VITE_API_URL to http://127.0.0.1:8787 when prompted
+```
 
 ### 6. **Azure Deployment** (45 minutes)
+```bash
+# Login to Azure
+az login
+
+# Create resource group
+az group create --name rg-nphies-healthcare --location "Saudi Arabia Central"
+
+# Deploy using ARM template
+az deployment group create \
+  --resource-group rg-nphies-healthcare \
+  --template-file azure-deploy.json \
+  --parameters appName=nphies-healthcare \
+              nphiesClientId="YOUR_CLIENT_ID" \
+              nphiesClientSecret="YOUR_CLIENT_SECRET" \
+              openaiApiKey="YOUR_OPENAI_KEY"
+```
+### 6. **Azure Deployment** (45 minutes)
+
 ```bash
 # Login to Azure
 az login
@@ -224,3 +315,67 @@ You now have a world-class, AI-powered healthcare assistant that meets Saudi Ara
 - ✅ Azure deployment ready
 
 **Ready to transform healthcare delivery in Saudi Arabia! 🇸🇦**
+
+---
+
+## 📦 Cloudflare Quickstart (Workers + Pages)
+
+1. Install Wrangler (if not installed):
+
+```bash
+npm install -g wrangler
+```
+
+2. Create KV namespace and D1 database (run once per account/region):
+
+```bash
+# Create a KV namespace; note the returned `id` and `preview_id`
+wrangler kv namespace create nphies-healthcare-worker-kv
+
+# Create a D1 database; note the returned `database_id`
+wrangler d1 create nphies-healthcare-db
+```
+
+3. Update `wrangler.toml` with the IDs returned by the commands above (replace the placeholders in the file).
+
+4. Add required secrets to the Worker (from repo root):
+
+```bash
+cd worker
+wrangler secret put NPHIES_CLIENT_ID
+wrangler secret put NPHIES_CLIENT_SECRET
+wrangler secret put JWT_SECRET
+wrangler secret put OPENAI_API_KEY
+# Optional override
+wrangler secret put FRONTEND_URL --text https://your-domain.pages.dev
+```
+
+5. Run locally for testing:
+
+```bash
+# Prepare local env
+cd worker
+cp .dev.vars.example .dev.vars
+# edit .dev.vars with safe test values
+
+# Start Worker locally
+wrangler dev --local
+
+# In another terminal start frontend and point API to the dev Worker URL
+cd ..
+npm run dev
+# set VITE_API_URL to http://127.0.0.1:8787 (or the URL wrangler prints)
+```
+
+6. Publish (once verified):
+
+```bash
+# Publish the Worker
+cd worker
+wrangler publish
+
+# Deploy Pages (if using Cloudflare Pages)
+# Follow Cloudflare Pages CLI or UI to connect repo and configure build settings (framework: "Vite", build command: "npm run build", output directory: "dist")
+```
+
+If you'd like, I can attempt to patch `wrangler.toml` now with the values you provide, or keep the placeholders and show the exact `sed` commands to replace them locally.
