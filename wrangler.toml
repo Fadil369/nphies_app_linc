@@ -1,0 +1,47 @@
+
+# Cloudflare Worker Configuration for NPHIES Healthcare Assistant
+name = "nphies-healthcare-worker"
+main = "worker/index.ts"
+compatibility_date = "2024-05-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables (set these in Cloudflare dashboard or with `wrangler secret`)
+[vars]
+NPHIES_API_URL = "https://api.nphies.sa"
+FRONTEND_URL = "https://your-domain.pages.dev"
+# Add the following secrets via `wrangler secret put <NAME>`:
+# NPHIES_CLIENT_ID, NPHIES_CLIENT_SECRET, JWT_SECRET, OPENAI_API_KEY
+
+# KV namespace for caching NPHIES tokens and session data
+[[kv_namespaces]]
+binding = "KV_NAMESPACE"
+id = "your-kv-namespace-id" # <-- REPLACE with the `id` returned by `wrangler kv namespace create <name>`
+preview_id = "your-preview-kv-namespace-id" # <-- REPLACE with preview id (optional)
+
+# D1 database for storing user data and audit logs
+[[d1_databases]]
+binding = "D1_DATABASE"
+database_name = "nphies-healthcare-db"
+database_id = "your-d1-database-id" # <-- REPLACE with the `database_id` returned by `wrangler d1 create <name>`
+
+# Example (replace the ids below with your values):
+# [[kv_namespaces]]
+# binding = "KV_NAMESPACE"
+# id = "1234567890abcdef"
+
+# [[d1_databases]]
+# binding = "D1_DATABASE"
+# database_name = "nphies-healthcare-db"
+# database_id = "abcd1234-ef56-7890-abcd-1234567890ab"
+
+# Build configuration
+[build]
+command = "npm run build"
+
+# Development environment
+[env.development]
+name = "nphies-healthcare-worker-dev"
+
+[env.development.vars]
+NPHIES_API_URL = "https://sandbox.nphies.sa"
+FRONTEND_URL = "http://localhost:5173"
