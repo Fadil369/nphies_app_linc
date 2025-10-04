@@ -17,7 +17,7 @@ import {
   CreditCard,
   FileText,
   Upload,
-  AlertCircle
+  WarningCircle
 } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 
@@ -523,7 +523,7 @@ export default function EnrollmentAssistant() {
             <Card className="border-blue-200 bg-blue-50">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3">
-                  <AlertCircle size={20} className="text-blue-600 mt-0.5" />
+                  <WarningCircle size={20} className="text-blue-600 mt-0.5" />
                   <div>
                     <p className="font-medium text-blue-800">Secure Payment Processing</p>
                     <p className="text-sm text-blue-700">

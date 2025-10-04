@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ChatCircle, Shield, FileText, User, Plus, Clock, Bell, Settings, SignOut } from '@phosphor-icons/react'
+import { ChatCircle, Shield, FileText, User, Plus, Clock, Bell, Gear, SignOut } from '@phosphor-icons/react'
 
 // Import components (fallback to original if enhanced not available)
 import EnhancedChatInterface from '@/components/EnhancedChatInterface'
@@ -225,7 +225,7 @@ function App() {
                   )}
                 </Button>
                 <Button variant="ghost" size="sm">
-                  <Settings size={18} />
+                  <Gear size={18} />
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
                   <SignOut size={16} />

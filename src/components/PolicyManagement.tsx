@@ -17,9 +17,9 @@ import {
   Tooth,
   Phone,
   MapPin,
-  Edit,
   Download,
-  AlertCircle
+  PencilSimple,
+  WarningCircle
 } from '@phosphor-icons/react'
 import { useKV } from '@github/spark/hooks'
 
@@ -381,7 +381,7 @@ export default function PolicyManagement() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-primary/10">
-                  <Edit size={16} className="text-primary" />
+                  <PencilSimple size={16} className="text-primary" />
                 </div>
                 Quick Actions
               </CardTitle>
@@ -392,7 +392,7 @@ export default function PolicyManagement() {
                 Download Policy Documents
               </Button>
               <Button className="w-full justify-start hover:scale-105 transition-transform" variant="outline">
-                <Edit size={16} className="mr-2" />
+                <PencilSimple size={16} className="mr-2" />
                 Update Contact Information
               </Button>
               <Button className="w-full justify-start hover:scale-105 transition-transform" variant="outline">
@@ -410,7 +410,7 @@ export default function PolicyManagement() {
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm">
-                      <Edit size={14} className="mr-1" />
+                      <PencilSimple size={14} className="mr-1" />
                       Edit
                     </Button>
                   </DialogTrigger>
@@ -477,7 +477,7 @@ export default function PolicyManagement() {
             <Card className="border-yellow-200 bg-yellow-50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-yellow-800">
-                  <AlertCircle size={20} />
+                  <WarningCircle size={20} />
                   Renewal Notice
                 </CardTitle>
               </CardHeader>
