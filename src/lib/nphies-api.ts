@@ -11,6 +11,7 @@ import {
   NPHIESEligibilityResponse,
   NPHIESClaimResponse
 } from './nphies-types'
+import { retryWithBackoff, isRetryableError } from './retry-utils'
 
 interface APIResponse<T = any> {
   success: boolean
@@ -161,9 +162,15 @@ class NPHIESAPIClient {
 
   async checkEligibility(request: NPHIESEligibilityRequest): Promise<APIResponse<NPHIESEligibilityResponse>> {
     try {
-      const response = await this.client.post<APIResponse<NPHIESEligibilityResponse>>(
-        '/api/nphies/eligibility',
-        request
+      const response = await retryWithBackoff(
+        () => this.client.post<APIResponse<NPHIESEligibilityResponse>>(
+          '/api/nphies/eligibility',
+          request
+        ),
+        {
+          maxAttempts: 3,
+          shouldRetry: (error: Error) => isRetryableError(error)
+        }
       )
       return response.data
     } catch (error) {
@@ -174,9 +181,15 @@ class NPHIESAPIClient {
 
   async submitClaim(request: NPHIESClaimRequest): Promise<APIResponse<NPHIESClaimResponse>> {
     try {
-      const response = await this.client.post<APIResponse<NPHIESClaimResponse>>(
-        '/api/nphies/claims',
-        request
+      const response = await retryWithBackoff(
+        () => this.client.post<APIResponse<NPHIESClaimResponse>>(
+          '/api/nphies/claims',
+          request
+        ),
+        {
+          maxAttempts: 3,
+          shouldRetry: (error: Error) => isRetryableError(error)
+        }
       )
       return response.data
     } catch (error) {

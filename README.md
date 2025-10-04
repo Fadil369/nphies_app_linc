@@ -87,3 +87,4 @@ git push -u origin main
 ```
 
 If you are reusing an existing repository, replace `origin` with your chosen remote name. Ensure that any secret files (e.g., `.env`, `.dev.vars`) remain untracked before pushing.
+# nphies_app_linc

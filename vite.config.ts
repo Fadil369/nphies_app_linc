@@ -22,4 +22,35 @@ export default defineConfig({
       '@': resolve(projectRoot, 'src')
     }
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-error-boundary'],
+          'vendor-ui': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-scroll-area',
+            '@radix-ui/react-popover'
+          ],
+          'vendor-copilot': ['@copilotkit/react-core', '@copilotkit/react-ui'],
+          'vendor-icons': ['@phosphor-icons/react'],
+          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'vendor-charts': ['recharts', 'd3']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000, // Increase limit for now
+    sourcemap: false, // Disable source maps in production for smaller size
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      '@copilotkit/react-core',
+      '@copilotkit/react-ui',
+      '@phosphor-icons/react'
+    ]
+  }
 });
